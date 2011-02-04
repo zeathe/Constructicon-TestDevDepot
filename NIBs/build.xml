@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<project name="HelloWorld" basedir="." default="compile.dist">
+	<!-- 
+	Build System Setup:
+
+	We're assuming the environment variable BSLandingZone is present.
+	This represents the location on disk that we'll be pushing compile
+	output bits to... and building our package structures into.
+
+	The following variables are of interest...
+
+	**** $(BSLandingZone) 	>>>> ${output.root} (sorta)
+	**** ${basedir} 	>>>> ${proj.root}
+
+	${output.root}		=	Where Compile Output goes
+	${logging.root}		=	Where the Log Output goes
+	${proj.root}		=	Base directory of Sources
+	${src.root}		=	Where .m, .h, and .pch should be
+	${nib.root}		=	Where .xib and .nib files should exist
+					in a localized state (IE English.lproj)
+	${BuildSystem.root}	=	Location for shared BuildSystem files
+					as expected to be.
+
+	This is a sub-project XML file.  It wil receive all of the above
+	variables through inheritence.
+
+	-->
+
+	<target name="compile.debug">
+		<property name="obj.root.debug" value="${obj.root}/debug" />
+		<mkdir dir="${obj.root.debug}/NIBs/MainMenu" />
+		<!-- Debug Compile Shiz -->
+		<exec executable="ibtool" dir="${proj.root}/NIBs" failonerror="true">
+			<arg value="--compile" />
+			<arg value="${obj.root.debug}/NIBs/MainMenu/MainMenu.nib" />
+			<arg value="--warnings" />
+			<arg value="--errors" />
+			<arg value="--output-format" />
+			<arg value="xml1" />
+			<arg value="--flatten" />
+			<arg value="NO" />
+			<arg value="English.lproj/MainMenu.xib" />
+		</exec>
+
+		<exec executable="ibtool" dir="${proj.root}/NIBs" failonerror="true">
+			<arg value="--export-strings-file" />
+			<arg value="${obj.root.debug}/NIBs/MainMenu/InfoPlist.strings" />
+			<!-- <arg value="${obj.root.debug}/NIBs/MainMenu/MainMenu.nib" /> -->
+			<arg value="English.lproj/MainMenu.xib" />
+		</exec>
+	
+		<checksum algorithm="SHA" fileext=".sha">
+			<fileset dir="${obj.root.debug}/NIBs/MainMenu/MainMenu.nib">
+				<include name="*.nib" />
+			</fileset>
+		</checksum>
+		<copy todir="${app.bundle.debug}/Contents/Resources/English.lproj/MainMenu.nib">
+			<fileset dir="${obj.root.debug}/NIBs/MainMenu/MainMenu.nib">
+				<exclude name="**/*.sha" />
+			</fileset>
+		</copy>
+		<copy file="${obj.root.debug}/NIBs/MainMenu/InfoPlist.strings" todir="${app.bundle.debug}/Contents/Resources/English.lproj" />
+
+	</target>
+
+
+
+	<target name="compile.dist">
+		<property name="obj.root.dist" value="${obj.root}/dist" />
+		<mkdir dir="${obj.root.dist}/NIBs/MainMenu" />
+		<!-- Dist/Retail Compile Shiz -->
+		<exec executable="ibtool" dir="${proj.root}/NIBs" failonerror="true">
+			<arg value="--compile" />
+			<arg value="${obj.root.dist}/NIBs/MainMenu/MainMenu.nib" />
+			<arg value="--output-format" />
+			<arg value="binary1" />
+			<arg value="--flatten" />
+			<arg value="YES" />
+			<arg value="English.lproj/MainMenu.xib" />
+		</exec>
+
+		<exec executable="ibtool" dir="${proj.root}/NIBs" failonerror="true">
+			<arg value="--export-strings-file" />
+			<arg value="${obj.root.dist}/NIBs/MainMenu/InfoPlist.strings" />
+			<!-- <arg value="${obj.root.dist}/NIBs/MainMenu/MainMenu.nib" /> -->
+			<arg value="English.lproj/MainMenu.xib" />
+		</exec>
+	
+
+		<checksum file="${obj.root.dist}/NIBs/MainMenu/MainMenu.nib" algorithm="SHA" fileext=".sha" />
+		<copy file="${obj.root.dist}/NIBs/MainMenu/MainMenu.nib" todir="${app.bundle.dist}/Contents/Resources/English.lproj" />
+		<copy file="${obj.root.dist}/NIBs/MainMenu/InfoPlist.strings" todir="${app.bundle.dist}/Contents/Resources/English.lproj" />
+
+	</target>
+
+
+</project>

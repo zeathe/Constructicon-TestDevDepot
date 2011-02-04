@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<project name="HelloWorld" basedir="." default="default">
+	<!-- 
+	Build System Setup:
+
+	We're assuming the environment variable BSLandingZone is present.
+	This represents the location on disk that we'll be pushing compile
+	output bits to... and building our package structures into.
+
+	The following variables are of interest...
+
+	**** $(BSLandingZone) 	>>>> ${output.root} (sorta)
+	**** ${basedir} 	>>>> ${proj.root}
+
+	${output.root}		=	Where Compile Output goes
+	${logging.root}		=	Where the Log Output goes
+	${proj.root}		=	Base directory of Sources
+	${src.root}		=	Where .m, .h, and .pch should be
+	${nib.root}		=	Where .xib and .nib files should exist
+					in a localized state (IE English.lproj)
+	${BuildSystem.root}	=	Location for shared BuildSystem files
+					as expected to be.
+
+	-->
+
+	<!--
+	***********************************************************************
+	Specify key variables for THIS project
+	***********************************************************************	
+	-->
+	<property name="proj.root" value="${basedir}" />
+	<property name="src.root" value="${proj.root}/Src" />
+	<property name="nib.root" value="${proj.root}/NIBs" />
+
+	<!--
+	***********************************************************************
+	User-specified variables for THIS project
+	***********************************************************************	
+	-->
+	<property name="app.bundle.name" value="HelloWorld.app" />
+
+	<!--
+	***********************************************************************
+	Start the Heavy Lifting....
+	***********************************************************************	
+	-->
+
+	<target name="init">
+		<!-- Windows OS -->
+		<condition property="platform.windows">
+			<os family="windows" />
+		</condition>
+
+		<!-- Mac OS X Platform, No Classic Mac Support -->
+		<condition property="platform.mac">
+			<and>
+				<os family="mac" />
+				<os family="unix" />
+			</and>
+		</condition>
+
+		<!-- Unix/Linux Platform, excluding Mac OS X -->
+		<condition property="platform.unix">
+			<and>
+				<os family="unix" />
+				<not>
+					<os family="mac" />
+				</not>
+			</and>
+		</condition>
+	</target>
+
+
+
+	<target name="clean" description="Purges all Compiled output bits and bundles" depends="init">
+		<delete 
+			dir="${output.root}/**" 
+			verbose="true"
+			includeemptydirs="true"
+			failonerror="false" />
+	</target>
+
+	<target name="default" description="Default Clean/Build Process">
+		<echo message="Starting DEFAULT build target..." />
+		<echo message="- Calling CLEAN..." />
+		<antcall target="clean" />
+		<echo message="- Calling BUILD.DEBUG..." />
+		<antcall target="build.debug" />
+		<echo message="- Calling BUILD.DIST..." />
+		<antcall target="build.dist" />
+		<echo message="- Building DEBUG Manifest..." />
+		<antcall target="manifest.debug" />
+		<echo message="- Building DIST Manifest..." />
+		<antcall target="manifest.dist" />
+	</target>
+
+	<!-- DEBUG BUILDS -->
+
+	<target name="build.debug" description="Compiles code with DEBUG symbols" depends="build.debug.mac, build.debug.windows, build.debug.unix">
+		<fail message="!   Sorry, looks like we don't support your platform...">
+			<condition>
+				<not>
+					<istrue value="${BuildRan}" />
+				</not>
+			</condition>
+		</fail>
+		
+	</target>
+
+
+	<!-- DIST BUILDS -->
+
+	<target name="build.dist" description="Compiles code with dist symbols" depends="build.dist.mac, build.dist.windows, build.dist.unix">
+		<fail message="!   Sorry, looks like we don't support your platform...">
+			<condition>
+				<not>
+					<equals arg1="${BuildRan}" arg2="true" />
+				</not>
+			</condition>
+		</fail>
+	
+	</target>
+
+	<!--
+	***********************************************************************
+	Platform-specific Tasks....
+	***********************************************************************	
+	-->
+
+
+	<!-- platform.windows shiznit -->
+
+	<target name="build.debug.windows" if="platform.windows" depends="init">
+		<echo message="!   build.debug.windows NOT IMPLEMENTED" />
+		<!-- <property name="BuildRan" value="true" /> -->
+	</target>
+
+	<target name="build.dist.windows" if="platform.windows" depends="init">
+		<echo message="!   build.dist.windows NOT IMPLEMENTED" />
+		<!-- <property name="BuildRan" value="true" /> -->
+	</target>
+
+
+
+
+	<!-- platform.mac shiznit -->
+
+
+        <target name="build.app.bundle.debug">
+		<mkdir dir="${app.bundle.debug}/Contents" />
+		<mkdir dir="${app.bundle.debug}/Contents/MacOS" />
+		<mkdir dir="${app.bundle.debug}/Contents/Resources" />
+		<mkdir dir="${app.bundle.debug}/Contents/Resources/English.lproj" />
+		<copy file="${proj.root}/Src/PkgInfo" todir="${app.bundle.debug}/Contents" />
+		<copy file="${proj.root}/Info.plist" todir="${app.bundle.debug}/Contents" />
+       </target>
+
+       <target name="build.debug.mac" if="platform.mac" depends="init">
+	       <!-- debug Mac Properties Cluster -->
+	       <property name="app.bundle.debug" value="${output.root}/DEBUG/${app.bundle.name}" />                
+
+	       <antcall target="build.app.bundle.debug" />
+
+	       <ant antfile="${proj.root}/Src/build.xml" target="compile.debug" output="${logging.root}/build.debug.mac.HelloWorld.log.txt" />
+
+	       <ant antfile="${proj.root}/NIBs/build.xml" target="compile.debug" output="${logging.root}/build.debug.mac.MainMenuNIB.log.txt" />
+
+	       <property name="BuildRan" value="true" />
+	</target>
+
+        <target name="build.app.bundle.dist">
+		<mkdir dir="${app.bundle.dist}/Contents" />
+		<mkdir dir="${app.bundle.dist}/Contents/MacOS" />
+		<mkdir dir="${app.bundle.dist}/Contents/Resources" />
+		<mkdir dir="${app.bundle.dist}/Contents/Resources/English.lproj" />
+		<copy file="${proj.root}/Src/PkgInfo" todir="${app.bundle.dist}/Contents" />
+		<copy file="${proj.root}/Info.plist" todir="${app.bundle.dist}/Contents" />
+	</target>
+
+	<target name="build.dist.mac" if="platform.mac" depends="init">
+		<!-- dist Mac Properties Cluster -->
+		<property name="app.bundle.dist" value="${output.root}/DIST/${app.bundle.name}" />                
+
+
+		<antcall target="build.app.bundle.dist" />
+		<ant antfile="${proj.root}/Src/build.xml" target="compile.dist" output="${logging.root}/build.dist.mac.HelloWorld.log.txt" />
+
+		<ant antfile="${proj.root}/NIBs/build.xml" target="compile.dist" output="${logging.root}/build.dist.mac.MainMenuNIB.log.txt" />
+
+		<property name="BuildRan" value="true" />
+	</target>
+
+
+	<!-- platform.unix shiznit -->
+
+	<target name="build.debug.unix" if="platform.unix" depends="init">
+		<echo message="!   build.debug.unix NOT IMPLEMENTED" />
+		<!-- <property name="BuildRan" value="true" /> -->
+	</target>
+
+	<target name="build.dist.unix" if="platform.unix" depends="init">
+		<echo message="!   build.dist.unix NOT IMPLEMENTED" />
+		<!-- <property name="BuildRan" value="true" /> -->
+	</target>
+
+	<!-- Post-Processing -->
+
+	<target name="manifest.debug" depends="build.debug">
+		<checksum todir="${output.root}/DEBUG.MANIFEST" algorithm="SHA" pattern="SHA ({1}) = {0}" fileext=".sha.txt">
+			<fileset dir="${output.root}/DEBUG" />
+		</checksum>
+		<checksum todir="${output.root}/DEBUG.MANIFEST" algorithm="MD5" pattern="MD5 ({1}) = {0}" fileext=".md5.txt">
+			<fileset dir="${output.root}/DEBUG" />
+		</checksum>
+	</target>
+
+	<target name="manifest.dist" depends="build.dist">
+		<checksum todir="${output.root}/DIST.MANIFEST" algorithm="SHA" pattern="SHA ({1}) = {0}" fileext=".sha.txt">
+			<fileset dir="${output.root}/DIST" />
+		</checksum>
+		<checksum todir="${output.root}/DIST.MANIFEST" algorithm="MD5" pattern="MD5 ({1}) = {0}" fileext=".md5.txt">
+			<fileset dir="${output.root}/DIST" />
+		</checksum>
+	</target>
+
+</project>
