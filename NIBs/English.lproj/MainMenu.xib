@@ -64,7 +64,7 @@
 								<bool key="EncodedWithXMLCoder">YES</bool>
 								<object class="NSMenuItem" id="238522557">
 									<reference key="NSMenu" ref="110575045"/>
-									<string key="NSTitle">About NewApplication</string>
+									<string key="NSTitle">About HelloWorld v1.0</string>
 									<string key="NSKeyEquiv"/>
 									<int key="NSMnemonicLoc">2147483647</int>
 									<reference key="NSOnImage" ref="35465992"/>
@@ -1213,7 +1213,7 @@
 							<object class="NSButtonCell" key="NSCell" id="763174450">
 								<int key="NSCellFlags">67239424</int>
 								<int key="NSCellFlags2">134217728</int>
-								<string key="NSContents">Get Me a Taco</string>
+								<string key="NSContents">Get Me a Burrito v2.0</string>
 								<reference key="NSSupport" ref="1051829138"/>
 								<reference key="NSControlView" ref="734300427"/>
 								<int key="NSButtonFlags">-2038284033</int>
